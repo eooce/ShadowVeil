@@ -6,10 +6,8 @@
 
 > 视觉风格：深空霓虹 + 玻璃拟态 + 极光渐变。原生 HTML + TailwindCSS + Monaco Editor。
 
-<!-- 截图占位：启动后截取首屏替换此处
 ![ShadowVeil 首屏](<img width="600" height="400" alt="image" src="https://github.com/user-attachments/assets/8acac1ab-a206-43ee-bbad-2f51b9fb6f40" />
 )
--->
 
 ---
 
