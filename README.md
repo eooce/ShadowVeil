@@ -4,11 +4,8 @@
 
 粘贴 JavaScript / Python / Shell，毫秒级获得混淆结果，可复制、可下载、可对比；同时提供带 API Key 的 RESTful 接口供程序调用。
 
-> 视觉风格：深空霓虹 + 玻璃拟态 + 极光渐变。原生 HTML + TailwindCSS + Monaco Editor，无 React / Vue。
+> 视觉风格：深空霓虹 + 玻璃拟态 + 极光渐变。原生 HTML + TailwindCSS + Monaco Editor。
 
-<!-- 截图占位：启动后截取首屏替换此处
-![ShadowVeil 首屏](docs/screenshot-hero.png)
--->
 
 ---
 
