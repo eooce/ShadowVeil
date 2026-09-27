@@ -493,10 +493,12 @@ input[type='range']#level-slider {
   width: 210px;
   height: 6px;
   border-radius: 999px;
+  /* 第一层：已填充段按等级由浅入深（天青 → 薄荷 → 瓦松绿）；
+     第二层：完整轨道底色（双主题可见） */
   background:
-    linear-gradient(90deg, var(--accent-1), var(--accent-2), var(--accent-3)) no-repeat,
-    rgba(255, 255, 255, 0.08);
-  background-size: var(--fill, 50%) 100%;
+    linear-gradient(90deg, #7CC5C9, #58B088, #3F7A59) no-repeat,
+    var(--glass-border);
+  background-size: var(--fill, 50%) 100%, 100% 100%;
   outline: none;
   cursor: pointer;
 }
