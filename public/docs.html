@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API 文档 — ShadowVeil</title>
+  <meta name="description" content="ShadowVeil 开放 API 文档：带 API Key 的 RESTful 混淆接口。" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+  <script>
+    tailwind.config = {
+      darkMode: ['class', '[data-theme="dark"]'],
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'], mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'] },
+          colors: { base: 'var(--bg-base)', elevated: 'var(--bg-elevated)', muted: 'var(--text-muted)', primary: 'var(--text-primary)' },
+        },
+      },
+    };
+  </script>
+  <link rel="stylesheet" href="/css/tailwind.css" />
+  <link rel="stylesheet" href="/css/custom.css" />
+</head>
+
+<body class="min-h-screen font-sans antialiased text-primary">
+  <div class="bg-aurora" aria-hidden="true">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="bg-grid"></div>
+  </div>
+
+  <header class="site-nav">
+    <div class="nav-inner">
+      <a href="/" class="brand" aria-label="ShadowVeil 首页">
+        <img src="/assets/logo.svg" alt="" width="30" height="30" class="brand-logo" />
+        <span class="brand-name">ShadowVeil</span>
+      </a>
+      <nav class="nav-links" aria-label="主导航">
+        <a href="/" class="nav-link">混淆器</a>
+        <a href="/docs" class="nav-link is-active">API 文档</a>
+        <a href="/pricing" class="nav-link">定价</a>
+        <a href="/about" class="nav-link">关于</a>
+      </nav>
+      <div class="nav-actions">
+        <button id="theme-toggle" class="icon-btn" type="button" aria-label="切换明暗主题">
+          <svg class="icon-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+          <svg class="icon-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="relative z-10 mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-8">
+    <section id="api-docs" class="api-docs" aria-labelledby="api-docs-title">
+      <h1 id="api-docs-title" class="section-title"><span class="gradient-text">开放 API</span></h1>
+      <p class="section-sub">所有功能都可通过 RESTful 接口调用。匿名每分钟 10 次，注册 Key 后每分钟 100 次、每日 5000 次。</p>
+
+      <div class="docs-layout">
+        <nav class="docs-nav" aria-label="文档目录">
+          <a href="#doc-levels" class="docs-nav-link">语言与等级</a>
+          <a href="#doc-auth" class="docs-nav-link">认证与限流</a>
+          <a href="#doc-obfuscate" class="docs-nav-link">POST /obfuscate</a>
+          <a href="#doc-keys" class="docs-nav-link">POST /keys</a>
+          <a href="#doc-keys-me" class="docs-nav-link">GET /keys/me</a>
+          <a href="#doc-other" class="docs-nav-link">健康检查与元信息</a>
+          <a href="#doc-keycard" class="docs-nav-link">获取我的 API Key</a>
+        </nav>
+
+        <div class="docs-content">
+          <article id="doc-levels" class="doc-block glass-card">
+            <h3>语言与混淆等级</h3>
+            <div class="doc-table-wrap">
+              <table>
+                <thead><tr><th>语言</th><th>等级</th><th>说明</th></tr></thead>
+                <tbody>
+                  <tr><td>JavaScript</td><td><code>light</code> / <code>standard</code>（默认） / <code>max</code></td><td>参考 js-obfuscator 在线预设：轻 = 压缩与十六进制标识符；中 = 字符串加密 + 控制流扁平化；高 = 全量混淆（性能开销大）</td></tr>
+                  <tr><td>Python</td><td>无等级（单一模式）</td><td>词法级混淆 + 多层 zlib / base64 自解压外壳，运行效果与原代码一致</td></tr>
+                  <tr><td>Shell</td><td><code>base64</code>（默认） / <code>high</code></td><td>默认 = base64 经 <code>base64 -d | bash</code> 执行；高 = bashfuscator 风格多层变换（base64 + 字符替换 + 八进制 printf + 变量拼接）</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="doc-note">Shell 兼容旧等级值：<code>light</code>/<code>standard</code> → <code>base64</code>，<code>max</code> → <code>high</code>。Python 请求中的 <code>level</code> 会被忽略。</p>
+          </article>
+
+          <article id="doc-auth" class="doc-block glass-card">
+            <h3>认证与限流</h3>
+            <p>调用混淆接口时携带 <code>X-API-Key</code> 请求头。没有 Key 时按 IP 匿名限流（10 次/分钟）。</p>
+            <div class="doc-table-wrap">
+              <table>
+                <thead><tr><th>调用方式</th><th>每分钟</th><th>每日</th></tr></thead>
+                <tbody>
+                  <tr><td>匿名（无 Key）</td><td>10 次</td><td>—</td></tr>
+                  <tr><td>API Key</td><td>100 次</td><td>5,000 次</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="doc-note">超限时返回 <code>429</code> 与 <code>Retry-After</code> 响应头；所有错误都返回统一结构 <code>{ success, requestId, error: { code, message } }</code>。</p>
+          </article>
+
+          <article id="doc-obfuscate" class="doc-block glass-card">
+            <h3><span class="method-pill post">POST</span> /api/v1/obfuscate</h3>
+            <p>混淆一段源代码。Body 为 JSON：<code>language</code>（javascript | python | shell）、<code>code</code>（1 ~ 200KB）、<code>level</code>（可选，见上表）、<code>options</code>（可选，仅 JavaScript 生效的高级开关）。</p>
+            <div class="code-example" data-endpoint="obfuscate">
+              <div class="example-tabs" role="tablist" aria-label="示例语言">
+                <button class="example-tab is-active" role="tab" aria-selected="true" data-example="curl" type="button">cURL</button>
+                <button class="example-tab" role="tab" aria-selected="false" data-example="node" type="button">Node.js</button>
+                <button class="example-tab" role="tab" aria-selected="false" data-example="python" type="button">Python</button>
+                <button class="mini-btn example-copy" type="button" aria-label="复制示例代码">复制</button>
+              </div>
+              <pre class="code-block"><code data-example="curl" data-include-key="false">curl -X POST http://localhost:3000/api/v1/obfuscate \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -d '{
+    "language": "javascript",
+    "level": "standard",
+    "code": "function hello() { console.log(\"hi\"); }"
+  }'</code><code data-example="node" data-include-key="false" hidden>const res = await fetch("http://localhost:3000/api/v1/obfuscate", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "X-API-Key": process.env.SHADOWVEIL_KEY,
+  },
+  body: JSON.stringify({
+    language: "shell",      // javascript | python | shell
+    level: "high",          // 见「语言与等级」
+    code: 'echo "hello"',
+  }),
+});
+const { data } = await res.json();
+console.log(data.code);   // 混淆结果
+console.log(data.stats);  // { originalSize, outputSize, ratio, duration }</code><code data-example="python" data-include-key="false" hidden>import os
+import requests
+
+resp = requests.post(
+    "http://localhost:3000/api/v1/obfuscate",
+    headers={"X-API-Key": os.environ["SHADOWVEIL_KEY"]},
+    json={
+        "language": "python",   # 单一混淆模式，无需 level
+        "code": "def greet(name):\n    print(f'hello {name}')\n",
+    },
+)
+payload = resp.json()
+print(payload["data"]["code"])
+print(payload["data"]["stats"]["duration"], "ms")</code></pre>
+            </div>
+            <p class="doc-note">成功响应：<code>{ "success": true, "requestId": "…", "data": { "code": "…", "stats": { "originalSize": 1024, "outputSize": 2048, "ratio": 2.0, "duration": 37 } } }</code></p>
+          </article>
+
+          <article id="doc-keys" class="doc-block glass-card">
+            <h3><span class="method-pill post">POST</span> /api/v1/keys</h3>
+            <p>用邮箱换取 API Key（每分钟最多 5 次）。同一邮箱重复调用返回同一个 Key。</p>
+            <div class="code-example">
+              <pre class="code-block"><code>curl -X POST http://localhost:3000/api/v1/keys \
+  -H "Content-Type: application/json" \
+  -d '{"email": "you@example.com"}'
+
+# → { "success": true, "data": { "key": "sv_…", "dailyQuota": 5000, "perMinute": 100 } }</code></pre>
+            </div>
+          </article>
+
+          <article id="doc-keys-me" class="doc-block glass-card">
+            <h3><span class="method-pill get">GET</span> /api/v1/keys/me</h3>
+            <p>查询当前 Key 的用量：今日 / 累计调用次数、剩余配额。</p>
+            <div class="code-example">
+              <pre class="code-block"><code>curl http://localhost:3000/api/v1/keys/me \
+  -H "X-API-Key: YOUR_API_KEY"</code></pre>
+            </div>
+          </article>
+
+          <article id="doc-other" class="doc-block glass-card">
+            <h3>健康检查与元信息</h3>
+            <p><code>GET /api/v1/health</code> 返回服务状态与版本；<code>GET /api/v1/languages</code> 返回支持的语言、各语言的等级与默认值。</p>
+          </article>
+
+          <article id="doc-keycard" class="doc-block key-card glass-card">
+            <h3>获取我的 API Key</h3>
+            <p>输入邮箱即刻生成，无需注册。请妥善保管，Key 即身份。</p>
+            <form id="key-form" class="key-form">
+              <label for="key-email" class="sr-only">邮箱地址</label>
+              <input id="key-email" name="email" type="email" required placeholder="you@example.com" autocomplete="email" class="key-input" />
+              <button id="key-submit" type="submit" class="primary-btn small">
+                <span class="btn-text">生成 Key</span>
+              </button>
+            </form>
+            <div id="key-result" class="key-result" hidden>
+              <div class="key-row">
+                <code id="key-value" class="key-value">—</code>
+                <button id="key-reveal" class="icon-btn" type="button" aria-label="显示或隐藏 Key" aria-pressed="false">
+                  <svg class="icon-eye" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                  <svg class="icon-eye-off" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" hidden><path d="M3 3l18 18M10.6 5.1A9.8 9.8 0 0 1 12 5c6.5 0 10 7 10 7a17.4 17.4 0 0 1-2.9 3.9M6.6 6.6A17 17 0 0 0 2 12s3.5 7 10 7c1.6 0 3-.4 4.3-1M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
+                </button>
+                <button id="key-copy" class="icon-btn" type="button" aria-label="复制 Key">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+                </button>
+              </div>
+              <p class="key-meta" id="key-meta"></p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <footer class="site-footer">
+      <p>© 2026 ShadowVeil · 让代码隐入暗影</p>
+      <nav aria-label="页脚链接">
+        <a href="/">混淆器</a>
+        <a href="/docs">API 文档</a>
+        <a href="https://github.com/eooce/ShadowVeil" target="_blank" rel="noopener noreferrer">GitHub</a>
+      </nav>
+    </footer>
+  </main>
+
+  <div id="toast-container" class="toast-container" role="status" aria-live="polite"></div>
+
+  <script src="/js/app.js"></script>
+  <script src="/js/api-docs.js"></script>
+</body>
+</html>

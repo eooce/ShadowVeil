@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ShadowVeil — 让代码隐入暗影 · 在线代码混淆</title>
+  <meta name="description" content="ShadowVeil 在线代码混淆：粘贴 JavaScript / Python / Shell，毫秒级获得混淆结果。" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+  <script>
+    tailwind.config = {
+      darkMode: ['class', '[data-theme="dark"]'],
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
+          },
+          colors: {
+            base: 'var(--bg-base)',
+            elevated: 'var(--bg-elevated)',
+            muted: 'var(--text-muted)',
+            primary: 'var(--text-primary)',
+            accent1: 'var(--accent-1)',
+            accent2: 'var(--accent-2)',
+            accent3: 'var(--accent-3)',
+          },
+        },
+      },
+    };
+  </script>
+  <link rel="stylesheet" href="/css/tailwind.css" />
+  <link rel="stylesheet" href="/css/custom.css" />
+
+  <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs/loader.js"></script>
+</head>
+
+<body class="min-h-screen font-sans antialiased text-primary">
+  <div class="bg-aurora" aria-hidden="true">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="bg-grid"></div>
+  </div>
+
+  <header class="site-nav">
+    <div class="nav-inner">
+      <a href="/" class="brand" aria-label="ShadowVeil 首页">
+        <img src="/assets/logo.svg" alt="" width="30" height="30" class="brand-logo" />
+        <span class="brand-name">ShadowVeil</span>
+      </a>
+
+      <nav class="nav-links" aria-label="主导航">
+        <a href="/" class="nav-link is-active">混淆器</a>
+        <a href="/docs" class="nav-link">API 文档</a>
+        <a href="/pricing" class="nav-link">定价</a>
+        <a href="/about" class="nav-link">关于</a>
+      </nav>
+
+      <div class="nav-actions">
+        <a href="https://github.com/eooce/ShadowVeil" target="_blank" rel="noopener noreferrer" class="icon-btn" aria-label="GitHub 仓库">
+          <svg viewBox="0 0 16 16" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+        </a>
+        <button id="theme-toggle" class="icon-btn" type="button" aria-label="切换明暗主题">
+          <svg class="icon-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+          <svg class="icon-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="relative z-10 mx-auto flex w-full max-w-[1500px] flex-1 flex-col px-4 sm:px-6 lg:px-8">
+    <!-- 紧凑 Hero：把首屏空间留给工作区 -->
+    <section class="hero hero-compact" aria-labelledby="hero-title">
+      <h1 id="hero-title" class="hero-title reveal">让代码隐入<span class="gradient-text">暗影</span></h1>
+      <p class="hero-sub reveal">JavaScript / Python / Shell 在线混淆 —— 毫秒级完成，可复制、可下载，另附开放 API。</p>
+      <div class="hero-badges reveal" role="list" aria-label="支持的语言">
+        <span class="lang-badge" role="listitem"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><rect width="24" height="24" rx="4" fill="#F7DF1E"/><path d="M6.5 19.5 8 17.7c.9.8 1.8 1.2 2.6 1.2.8 0 1.2-.3 1.2-.8 0-.6-.5-.9-1.5-1.3l-.8-.3c-1.7-.7-2.6-1.6-2.6-3.2 0-1.7 1.3-3 3.4-3 1.4 0 2.5.5 3.4 1.4l-1.5 1.7c-.7-.6-1.4-.9-2-.9-.6 0-.9.2-.9.7 0 .5.4.8 1.3 1.2l.9.4c1.9.8 2.7 1.6 2.7 3.2 0 1.9-1.5 3.1-3.7 3.1-1.7 0-3.1-.6-4-1.7Z" fill="#08080C"/></svg>JavaScript</span>
+        <span class="lang-badge" role="listitem"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M11.9 2c-1 0-1.9.2-2.6.5-1.4.6-1.7 1.6-1.7 2.3v2.3h5v1H5.3c-1.5 0-2.9.9-3.3 2.6-.5 2-.5 3.2 0 5.3.4 1.6 1.2 2.8 2.7 2.8h2.1v-2.8c0-1.6 1.4-3 3-3h4.9c1.3 0 2.4-1.1 2.4-2.4V4.8c0-1.3-1.1-2.2-2.4-2.4-.8-.1-1.7-.2-2.8-.4ZM9 3.7c.5 0 .8.4.8.8s-.4.8-.8.8-.8-.4-.8-.8.3-.8.8-.8Z" fill="#3776AB"/><path d="M12.1 22c1 0 1.9-.2 2.6-.5 1.4-.6 1.7-1.6 1.7-2.3v-2.3h-5v-1h7.3c1.5 0 2.9-.9 3.3-2.6.5-2 .5-3.2 0-5.3-.4-1.6-1.2-2.8-2.7-2.8h-2.1v2.8c0 1.6-1.4 3-3 3H9.3C8 11.3 6.9 12.4 6.9 13.7v5.5c0 1.3 1.1 2.2 2.4 2.4.8.1 1.7.2 2.8.4ZM15 20.3c-.5 0-.8-.4-.8-.8s.4-.8.8-.8.8.4.8.8-.4.8-.8.8Z" fill="#FFD43B"/></svg>Python</span>
+        <span class="lang-badge" role="listitem"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>Shell</span>
+      </div>
+    </section>
+
+    <section id="obfuscator" class="workspace" aria-label="代码混淆工作区">
+      <div class="toolbar glass-card reveal">
+        <div class="toolbar-left">
+          <div class="segmented" role="tablist" aria-label="选择语言">
+            <span class="segmented-slider" aria-hidden="true"></span>
+            <button class="segment is-active" role="tab" aria-selected="true" data-lang="javascript" id="tab-javascript" type="button">
+              <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><rect width="24" height="24" rx="5" fill="#F7DF1E"/><path d="M7 19.5 8.4 17.8c.8.7 1.7 1.1 2.4 1.1.7 0 1.1-.3 1.1-.7 0-.6-.5-.8-1.4-1.2l-.7-.3c-1.6-.6-2.4-1.4-2.4-2.9 0-1.6 1.2-2.7 3.1-2.7 1.3 0 2.3.4 3.1 1.2l-1.4 1.5c-.6-.5-1.2-.8-1.8-.8-.5 0-.8.2-.8.6 0 .5.4.7 1.2 1l.8.4c1.7.7 2.4 1.4 2.4 2.9 0 1.7-1.3 2.8-3.3 2.8-1.5 0-2.8-.5-3.6-1.5Z" fill="#08080C"/></svg>
+              <span>JavaScript</span>
+            </button>
+            <button class="segment" role="tab" aria-selected="false" data-lang="python" id="tab-python" type="button">
+              <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M11.9 2c-1 0-1.9.2-2.6.5-1.4.6-1.7 1.6-1.7 2.3v2.3h5v1H5.3c-1.5 0-2.9.9-3.3 2.6-.5 2-.5 3.2 0 5.3.4 1.6 1.2 2.8 2.7 2.8h2.1v-2.8c0-1.6 1.4-3 3-3h4.9c1.3 0 2.4-1.1 2.4-2.4V4.8c0-1.3-1.1-2.2-2.4-2.4-.8-.1-1.7-.2-2.8-.4ZM9 3.7c.5 0 .8.4.8.8s-.4.8-.8.8-.8-.4-.8-.8.3-.8.8-.8Z" fill="#3776AB"/><path d="M12.1 22c1 0 1.9-.2 2.6-.5 1.4-.6 1.7-1.6 1.7-2.3v-2.3h-5v-1h7.3c1.5 0 2.9-.9 3.3-2.6.5-2 .5-3.2 0-5.3-.4-1.6-1.2-2.8-2.7-2.8h-2.1v2.8c0 1.6-1.4 3-3 3H9.3C8 11.3 6.9 12.4 6.9 13.7v5.5c0 1.3 1.1 2.2 2.4 2.4.8.1 1.7.2 2.8.4ZM15 20.3c-.5 0-.8-.4-.8-.8s.4-.8.8-.8.8.4.8.8-.4.8-.8.8Z" fill="#FFD43B"/></svg>
+              <span>Python</span>
+            </button>
+            <button class="segment" role="tab" aria-selected="false" data-lang="shell" id="tab-shell" type="button">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><polyline points="7 9 10 12 7 15"/><line x1="12" y1="15" x2="16" y2="15"/></svg>
+              <span>Shell</span>
+            </button>
+          </div>
+
+          <!-- 等级控件：按语言动态（JS 三级 / Python 无 / Shell 两级） -->
+          <div class="level-control" id="level-control">
+            <label class="level-label" for="level-slider" id="level-label">混淆等级</label>
+            <div class="level-slider-wrap">
+              <input type="range" id="level-slider" min="0" max="2" step="1" value="1" aria-label="混淆等级" />
+              <div class="level-marks" id="level-marks" aria-hidden="true"></div>
+            </div>
+          </div>
+          <!-- Python 单一模式说明 -->
+          <span class="level-note" id="level-note" hidden></span>
+        </div>
+
+        <div class="toolbar-right">
+          <button id="obfuscate-btn" class="primary-btn" type="button">
+            <span class="btn-shine" aria-hidden="true"></span>
+            <svg class="btn-icon-play" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5-11-6.5Z"/></svg>
+            <svg class="btn-icon-spin" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-9-9"/></svg>
+            <span class="btn-text">混淆</span>
+            <kbd class="btn-kbd" aria-hidden="true">Ctrl↵</kbd>
+          </button>
+        </div>
+      </div>
+
+      <div id="progress-track" class="progress-track" aria-hidden="true"><div class="progress-bar"></div></div>
+
+      <div class="mobile-tabs" role="tablist" aria-label="输入输出切换">
+        <button class="mobile-tab is-active" role="tab" aria-selected="true" data-pane="input" type="button">输入</button>
+        <button class="mobile-tab" role="tab" aria-selected="false" data-pane="output" type="button">输出</button>
+      </div>
+
+      <div class="editors" id="editors">
+        <section class="pane pane-input" id="panel-input" aria-label="输入编辑器">
+          <div class="pane-head">
+            <span class="pane-title" id="input-filename">input.js</span>
+            <div class="pane-actions">
+              <button id="upload-btn" class="mini-btn" type="button" aria-label="上传本地文件（仅读取，不会保存）">上传</button>
+              <button id="sample-btn" class="mini-btn" type="button" aria-label="载入示例代码">示例</button>
+              <button id="clear-input-btn" class="mini-btn" type="button" aria-label="清空输入">清空</button>
+            </div>
+          </div>
+          <div class="editor-shell" id="input-shell">
+            <div id="input-editor" class="editor-host"></div>
+            <pre id="input-placeholder" class="editor-placeholder" aria-hidden="true"></pre>
+          </div>
+          <input type="file" id="file-input" hidden aria-hidden="true" tabindex="-1" />
+        </section>
+
+        <div class="divider" id="divider" role="separator" aria-orientation="vertical" aria-label="拖拽调整编辑器宽度" title="拖拽调整宽度"></div>
+
+        <section class="pane pane-output" id="panel-output" aria-label="输出编辑器">
+          <div class="pane-head">
+            <span class="pane-title" id="output-filename">output.js · 混淆结果</span>
+            <div class="pane-actions" id="result-actions" hidden>
+              <button id="copy-btn" class="mini-btn" type="button" aria-label="复制结果">复制</button>
+              <button id="download-btn" class="mini-btn" type="button" aria-label="下载结果">下载</button>
+              <button id="fullscreen-btn" class="mini-btn" type="button" aria-label="全屏查看结果">全屏</button>
+              <button id="exit-fullscreen-btn" class="mini-btn" type="button" aria-label="退出全屏" hidden>退出全屏</button>
+            </div>
+          </div>
+          <div class="editor-shell">
+            <div id="output-editor" class="editor-host"></div>
+          </div>
+        </section>
+      </div>
+
+      <div id="stats-bar" class="stats-bar" hidden aria-live="polite">
+        <span class="stat-badge"><span class="stat-label">原始</span><span class="stat-value" id="stat-original">—</span></span>
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
+        <span class="stat-badge"><span class="stat-label">混淆后</span><span class="stat-value" id="stat-output">—</span></span>
+        <span class="stat-badge ratio-badge" id="stat-ratio-badge"><span class="stat-label">压缩率</span><span class="stat-value" id="stat-ratio">—</span></span>
+        <span class="stat-badge time-badge"><span class="stat-label">耗时</span><span class="stat-value" id="stat-duration">—</span></span>
+      </div>
+    </section>
+
+    <footer class="site-footer">
+      <p>© 2026 ShadowVeil · 让代码隐入暗影</p>
+      <nav aria-label="页脚链接">
+        <a href="/">混淆器</a>
+        <a href="/docs">API 文档</a>
+        <a href="https://github.com/eooce/ShadowVeil" target="_blank" rel="noopener noreferrer">GitHub</a>
+      </nav>
+    </footer>
+  </main>
+
+  <div id="toast-container" class="toast-container" role="status" aria-live="polite"></div>
+
+  <script src="/js/editor.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>

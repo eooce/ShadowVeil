@@ -1,0 +1,33 @@
+/* ==========================================================================
+   ShadowVeil — Tailwind helper layer
+   --------------------------------------------------------------------------
+   Utility classes come from the Tailwind CDN (see index.html). This file
+   holds the tiny base layer that must ship before custom.css and the
+   component hooks referenced by Tailwind's config.
+   ========================================================================== */
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg-base);
+}
+
+/* Every section that the sticky nav can scroll to gets breathing room. */
+section[id] {
+  scroll-margin-top: 84px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}

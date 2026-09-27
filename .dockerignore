@@ -1,0 +1,14 @@
+node_modules
+data
+.git
+.github
+.env
+.env.*
+!.env.example
+*.log
+*.md
+test.*
+scripts
+shadowveil-prompt.md
+Dockerfile
+.dockerignore

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <defs>
+    <linearGradient id="veil" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3F7A59"/>
+      <stop offset="0.52" stop-color="#58B088"/>
+      <stop offset="1" stop-color="#7CC5C9"/>
+    </linearGradient>
+    <linearGradient id="veil-soft" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7CC5C9" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#3F7A59" stop-opacity="0.05"/>
+    </linearGradient>
+  </defs>
+  <path d="M24 3 42 9.5v13.2C42 33.6 34.6 41.6 24 45 13.4 41.6 6 33.6 6 22.7V9.5L24 3Z"
+        fill="url(#veil-soft)" stroke="url(#veil)" stroke-width="2.4" stroke-linejoin="round"/>
+  <path d="M24 12.5c-4.9 0-8.5 1.2-10.3 1.9-.6.2-.7.8-.4 1.3 2.5 3.4 4.6 7.5 4.6 12.3 0 1.5-.2 3-.6 4.4 2 .9 4.2 1.6 6.7 2.1 2.5-.5 4.7-1.2 6.7-2.1-.4-1.4-.6-2.9-.6-4.4 0-4.8 2.1-8.9 4.6-12.3.3-.5.2-1.1-.4-1.3-1.8-.7-5.4-1.9-10.3-1.9Z"
+        fill="url(#veil)" opacity="0.9"/>
+  <circle cx="24" cy="21" r="2.4" fill="#0B0F0D"/>
+</svg>

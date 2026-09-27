@@ -1,0 +1,34 @@
+{
+  "name": "shadowveil",
+  "version": "1.0.0",
+  "description": "ShadowVeil — 在线代码混淆平台（多语言 + 开放 API）",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "node src/server.js",
+    "start": "node src/server.js"
+  },
+  "keywords": [
+    "obfuscator",
+    "javascript",
+    "python",
+    "shell",
+    "fastify"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@fastify/rate-limit": "^10.2.0",
+    "@fastify/static": "^8.0.3",
+    "better-sqlite3": "^11.10.0",
+    "fastify": "^5.2.1",
+    "javascript-obfuscator": "^4.1.1",
+    "pino": "^9.6.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "pino-pretty": "^13.0.0"
+  }
+}
