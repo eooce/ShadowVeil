@@ -1,6 +1,10 @@
-/* ShadowVeil — Monaco Editor integration.
- * Creates the input/output editors with transparent, page-matching themes
- * and exposes them on window.SV for app.js.
+/* ShadowVeil — editor integration.
+ *
+ * Desktop: Monaco with transparent, page-matching themes.
+ * Mobile (coarse pointer / narrow viewport): native <textarea> adapters —
+ * Monaco's touch support is unreliable on phones, while a native textarea
+ * gets the system keyboard and proper input UX for free. Both modes expose
+ * the same SV.editors interface (getValue/setValue/focus/...).
  */
 (function () {
   'use strict';
@@ -11,7 +15,68 @@
 
   var MONACO_CDN = 'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs';
 
-  require.config({ paths: { vs: MONACO_CDN } });
+  /* -------------------------------------------------- shared placeholder */
+
+  function placeholderEl() { return document.getElementById('input-placeholder'); }
+
+  function updatePlaceholder() {
+    var ph = placeholderEl();
+    if (!ph || !SV.editors.input) return;
+    var empty = SV.editors.input.getValue().length === 0;
+    ph.style.display = empty ? 'block' : 'none';
+  }
+
+  function setInputPlaceholderText(text) {
+    var ph = placeholderEl();
+    if (ph) ph.textContent = text;
+    updatePlaceholder();
+  }
+
+  /* --------------------------------------------------------- mobile mode */
+
+  var useTextarea =
+    window.matchMedia('(pointer: coarse)').matches ||
+    window.innerWidth < 768;
+
+  function setupMobileEditors() {
+    document.body.classList.add('mobile-editors');
+    var inputTa = document.getElementById('input-textarea');
+    var outputTa = document.getElementById('output-textarea');
+    inputTa.hidden = false;
+    outputTa.hidden = false;
+
+    var listeners = [];
+    function fire() {
+      updatePlaceholder();
+      listeners.forEach(function (fn) { fn(); });
+    }
+    inputTa.addEventListener('input', fire);
+
+    SV.editors.input = {
+      getValue: function () { return inputTa.value; },
+      setValue: function (v) { inputTa.value = v; fire(); },
+      focus: function () { inputTa.focus(); },
+      layout: function () {},
+      addCommand: function () {},
+      onDidChangeModelContent: function (fn) { listeners.push(fn); },
+    };
+    SV.editors.output = {
+      getValue: function () { return outputTa.value; },
+      setValue: function (v) { outputTa.value = v; },
+      focus: function () { outputTa.focus(); },
+      layout: function () {},
+      addCommand: function () {},
+      onDidChangeModelContent: function () {},
+    };
+
+    SV.setEditorLanguage = function () {};   // textarea has no language mode
+    SV.setMonacoTheme = function () {};      // theme is CSS-driven
+    SV.setInputPlaceholder = setInputPlaceholderText;
+    updatePlaceholder();
+    SV._resolveEditorReady();
+  }
+
+  /* --------------------------------------------------------- desktop mode */
 
   var DARK_RULES = [
     { token: 'comment', foreground: '6B7C72', fontStyle: 'italic' },
@@ -113,6 +178,14 @@
     };
   }
 
+  require.config({ paths: { vs: MONACO_CDN } });
+
+  if (useTextarea) {
+    // Mobile: skip Monaco entirely — native textareas are already set up.
+    setupMobileEditors();
+    return;
+  }
+
   require(['vs/editor/editor.main'], function () {
     defineThemes(monaco);
 
@@ -126,26 +199,17 @@
       value: '',
     }));
 
-    // Ghost placeholder: a faint sample shown while the input is empty.
-    // It is an overlay — never real content, so nothing has to be deleted
-    // before pasting or obfuscating.
-    var placeholderEl = document.getElementById('input-placeholder');
-    function syncPlaceholder() {
-      if (!placeholderEl) return;
-      var empty = SV.editors.input.getValue().length === 0;
-      placeholderEl.style.display = empty ? 'block' : 'none';
-      if (empty) {
-        var layout = SV.editors.input.getLayoutInfo();
-        placeholderEl.style.paddingLeft = layout.contentLeft + 'px';
+    // Ghost placeholder overlay: shown while the input is empty. It is never
+    // real content, so nothing has to be deleted before pasting.
+    SV.editors.input.onDidChangeModelContent(updatePlaceholder);
+    SV.editors.input.onDidLayoutChange(function () {
+      var ph = placeholderEl();
+      if (ph && ph.style.display !== 'none') {
+        ph.style.paddingLeft = SV.editors.input.getLayoutInfo().contentLeft + 'px';
       }
-    }
-    SV.editors.input.onDidChangeModelContent(syncPlaceholder);
-    SV.editors.input.onDidLayoutChange(syncPlaceholder);
-    SV.setInputPlaceholder = function (text) {
-      if (placeholderEl) placeholderEl.textContent = text;
-      syncPlaceholder();
-    };
-    syncPlaceholder();
+    });
+    SV.setInputPlaceholder = setInputPlaceholderText;
+    updatePlaceholder();
 
     // Ctrl/Cmd + Enter runs the obfuscation from inside either editor.
     var runShortcut = monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter;
@@ -163,4 +227,6 @@
 
     SV._resolveEditorReady();
   });
+
+  if (useTextarea) setupMobileEditors();
 })();

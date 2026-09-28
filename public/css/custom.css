@@ -826,6 +826,41 @@ html[data-theme='light'] .pane {
   min-height: 0;
 }
 
+/* 移动端原生输入（pointer: coarse / 窄屏时由 editor.js 启用） */
+.editor-textarea {
+  display: none;
+  flex: 1;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-code);
+  font-size: 16px; /* ≥16px prevents iOS focus zoom */
+  line-height: 1.6;
+  padding: 12px 14px;
+  resize: none;
+  outline: none;
+  white-space: pre;
+  overflow: auto;
+  caret-color: var(--accent-1);
+}
+
+.editor-textarea::selection {
+  background: rgba(88, 176, 136, 0.3);
+}
+
+body.mobile-editors .editor-textarea {
+  display: block;
+}
+
+body.mobile-editors .editor-host {
+  display: none;
+}
+
+body.mobile-editors .editor-placeholder {
+  padding-left: 14px !important;
+}
+
 /* 隐约的示例占位：overlay，不占用真实内容，粘贴/输入即刻隐藏 */
 .editor-placeholder {
   position: absolute;
