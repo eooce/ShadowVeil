@@ -79,12 +79,12 @@
                 <thead><tr><th>语言</th><th>等级</th><th>说明</th></tr></thead>
                 <tbody>
                   <tr><td>JavaScript</td><td><code>light</code> / <code>standard</code>（默认） / <code>max</code></td><td>参考 js-obfuscator 在线预设：轻 = 压缩与十六进制标识符；中 = 字符串加密 + 控制流扁平化；高 = 全量混淆（性能开销大）</td></tr>
-                  <tr><td>Python</td><td>无等级（单一模式）</td><td>词法级混淆 + 多层 zlib / base64 自解压外壳，运行效果与原代码一致</td></tr>
+                  <tr><td>Python</td><td><code>light</code>（轻） / <code>high</code>（默认）</td><td>轻 = 仅压缩打包（zlib + base64 自解压外壳，源码不改写，兼容性最好）；高 = 词法混淆（重命名 / 字符串加密 / 数字混淆）+ 多层自解压外壳</td></tr>
                   <tr><td>Shell</td><td><code>base64</code>（默认） / <code>high</code></td><td>默认 = base64 经 <code>base64 -d | bash</code> 执行；高 = bashfuscator 风格多层变换（base64 + 字符替换 + 八进制 printf + 变量拼接）</td></tr>
                 </tbody>
               </table>
             </div>
-            <p class="doc-note">Shell 兼容旧等级值：<code>light</code>/<code>standard</code> → <code>base64</code>，<code>max</code> → <code>high</code>。Python 请求中的 <code>level</code> 会被忽略。</p>
+            <p class="doc-note">Shell 兼容旧等级值：<code>light</code>/<code>standard</code> → <code>base64</code>，<code>max</code> → <code>high</code>。Python 兼容旧等级值：<code>standard</code>/<code>max</code> → <code>high</code>。</p>
           </article>
 
           <article id="doc-auth" class="doc-block glass-card">
@@ -140,7 +140,7 @@ resp = requests.post(
     "http://localhost:3000/api/v1/obfuscate",
     headers={"X-API-Key": os.environ["SHADOWVEIL_KEY"]},
     json={
-        "language": "python",   # 单一混淆模式，无需 level
+        "language": "python",   # level 可选：light 仅压缩 / high 词法混淆（默认）
         "code": "def greet(name):\n    print(f'hello {name}')\n",
     },
 )

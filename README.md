@@ -14,7 +14,7 @@
 - **多页面站点**：混淆器（首页）/ API 文档 / 定价 / 关于，各自独立页面
 - **三语言混淆引擎**
   - **JavaScript**：基于 `javascript-obfuscator`，三级强度（轻 / 中 / 高，默认中），在 worker 线程中执行，不阻塞事件循环
-  - **Python**：单一模式 —— 自研词法分析器混淆后套多层 zlib / base64 自解压外壳，运行效果与原代码一致
+  - **Python**：两级 —— 轻为仅压缩打包（zlib + base64 自解压外壳，源码不改写，兼容性最好）；高为自研词法分析器混淆后套多层自解压外壳，运行效果与原代码一致
   - **Shell**：两级 —— 默认 base64 管道执行；高为 bashfuscator 风格多层变换（base64 + tr 字符替换 + 八进制 printf + 变量拼接）
 - **大工作区**：Monaco 双栏编辑器（可拖拽分栏、首屏即达）、语言分段控件、按语言动态显示的等级滑块、Ctrl/Cmd + Enter 快捷键
 - **结果操作**：复制 / 下载 / 全屏 / 清空，彩色统计徽章（原始大小 → 混淆后大小、压缩率、耗时）
@@ -144,15 +144,14 @@ curl http://localhost:3000/api/v1/languages
 
 API 可用 `options` 覆盖预设：`selfDefending`、`debugProtection`、`controlFlowFlattening`、`deadCodeInjection`、`stringArray`、`identifierNamesGenerator`。
 
-### Python（单一模式，无等级）
+### Python（两级，默认 `high`）
 
-词法级混淆（变量重命名 / 字符串 base64 加密 / 数字混淆 / 注释移除）之后，再套**两层 zlib + base64 自解压外壳**：
+| 等级 | 产物形态 |
+| --- | --- |
+| `light`（轻） | 源码不改写，单层 zlib + base64 自解压外壳：`exec(__import__('zlib').decompress(__import__('base64').b64decode('…')))` —— 任何合法 Python 都能跑，兼容性最好，但 `exec` 换 `print` 即可还原源码 |
+| `high`（高，默认） | 词法级混淆（变量重命名 / 字符串 base64 加密 / 数字混淆 / 注释移除）之后，再套**两层 zlib + base64 自解压外壳** —— 解开外壳后得到的仍是改名加密后的代码 |
 
-```python
-exec(__import__('zlib').decompress(__import__('base64').b64decode('…')))
-```
-
-运行效果与原代码完全一致，无任何第三方依赖。词法层安全保留 shebang、编码声明、docstring、关键字参数、属性访问。
+运行效果与原代码完全一致，无任何第三方依赖。词法层（`high`）安全保留 shebang、编码声明、docstring、关键字参数、属性访问；`standard`/`max` 等旧等级值自动映射到 `high`。
 
 ### Shell（两级，默认 `base64`）
 

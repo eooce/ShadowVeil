@@ -1,5 +1,5 @@
 import { obfuscateJavaScript, sanitizeJsOptions } from './javascript.js';
-import { obfuscatePythonSingle } from './python/obfuscator.js';
+import { obfuscatePythonSingle, obfuscatePythonWrap } from './python/obfuscator.js';
 import { obfuscateShell } from './shell.js';
 import { normalizeLevel } from './presets.js';
 import { buildStats } from '../utils/stats.js';
@@ -10,9 +10,10 @@ export { ObfuscationError };
 /**
  * Unified obfuscation entry point.
  *
- * Levels: JavaScript uses light|standard|max (default standard); Python has
- * a single mode and ignores the level; Shell uses base64|high, with the
- * legacy light|standard|max values mapped onto them.
+ * Levels: JavaScript uses light|standard|max (default standard); Python
+ * uses light (compress-only shell) | high (lexical + shells, default);
+ * Shell uses base64|high, with the legacy light|standard|max values mapped
+ * onto them.
  *
  * @param {string} code source code to obfuscate
  * @param {'javascript'|'python'|'shell'} language
@@ -31,7 +32,9 @@ export async function obfuscate(code, language, level, options = {}) {
       output = await obfuscateJavaScript(code, engineLevel, sanitizeJsOptions(options));
       break;
     case 'python':
-      output = await obfuscatePythonSingle(code);
+      output = engineLevel === 'light'
+        ? await obfuscatePythonWrap(code)
+        : await obfuscatePythonSingle(code);
       break;
     case 'shell':
       output = await obfuscateShell(code, engineLevel);

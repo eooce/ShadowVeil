@@ -51,6 +51,16 @@ e = 0x1F + 0b101 + 1_000
 f = "unicode \\u00e9\\u4e2d"
 print(a, b, c, d, e, f)
 `,
+  concat: `a = ('one'  # comment inside the concatenation group
+      'two\\n'
+      'three')
+b = b'\\x00\\x01' b'tail' b''
+c = 'a\\n' r'\\nb' 'c\\x41'
+d = f'left {a[:3]}' ' right'
+e = ' right ' f'left {len(a)}'
+g = 'x' 'y' f'z {1+1}' 'w'
+print(a, b, c, d, e, g)
+`,
   keywords: `import os
 from collections import OrderedDict as OD
 
@@ -166,11 +176,24 @@ async function check(label, fn) {
   }
 }
 
-console.log('== Python (single mode) ==');
+console.log('== Python (high = lexical + shells) ==');
 for (const [name, src] of Object.entries(pythonSamples)) {
   await check(`python/${name}`, async () => {
     const { code } = await obfuscate(src, 'python', undefined);
     const file = writeTemp(`py-${name}.py`, code);
+    const orig = execFileSync('python', ['-W', 'ignore', '-c', src], { encoding: 'utf8' });
+    const got = execFileSync('python', ['-W', 'ignore', file], { encoding: 'utf8' });
+    if (orig !== got) {
+      throw new Error(`stdout mismatch\n--- expected ---\n${orig}--- got ---\n${got}--- code ---\n${code}`);
+    }
+  });
+}
+
+console.log('== Python (light = compress-only) ==');
+for (const [name, src] of Object.entries(pythonSamples)) {
+  await check(`python-light/${name}`, async () => {
+    const { code } = await obfuscate(src, 'python', 'light');
+    const file = writeTemp(`py-light-${name}.py`, code);
     const orig = execFileSync('python', ['-W', 'ignore', '-c', src], { encoding: 'utf8' });
     const got = execFileSync('python', ['-W', 'ignore', file], { encoding: 'utf8' });
     if (orig !== got) {

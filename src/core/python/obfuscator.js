@@ -503,6 +503,72 @@ function encryptStringToken(t, decoderName, bytesDecoderName) {
   return { code: `${decoderName}('${Buffer.from(new TextEncoder().encode(decoded.text)).toString('base64')}')`, kind: 'str' };
 }
 
+/**
+ * Handle implicitly concatenated string literals (`'a' 'b'`, also across
+ * lines inside brackets; comments may sit between the parts). Each maximal
+ * run of adjacent string tokens (STRING or FSTRING) is processed:
+ *   - all-plain runs with matching bytes-ness are folded into their first
+ *     token, joining the decoded texts, and encrypted as one call;
+ *   - runs touching an f-string (or with parts we cannot decode) keep every
+ *     literal untouched, flagged `_noEncrypt`, because encrypting a single
+ *     part would leave adjacent function-call/literal pairs — a syntax
+ *     error.
+ * Consumed tokens are removed from the stream; each merged group counts as
+ * one encrypted string/bytes so the decoder helpers are always emitted.
+ */
+function mergeStringConcatenations(tokens, decoderName, bytesDecoderName) {
+  const consumed = new Set();
+  let encryptedStr = 0;
+  let encryptedBytes = 0;
+  for (let i = 0; i < tokens.length; i++) {
+    const head = tokens[i];
+    if ((head.type !== 'STRING' && head.type !== 'FSTRING') || consumed.has(head)) continue;
+
+    const run = [head];
+    let j = i + 1;
+    for (;;) {
+      while (j < tokens.length && tokens[j].type === 'COMMENT') j++;
+      const nxt = tokens[j];
+      if (nxt && (nxt.type === 'STRING' || nxt.type === 'FSTRING')) { run.push(nxt); j++; continue; }
+      break;
+    }
+    if (run.length === 1) continue;
+
+    const allPlain = run.every((t) => t.type === 'STRING');
+    const sameKind = allPlain && run.every((t) => t.isBytes === head.isBytes);
+    if (allPlain && sameKind) {
+      const parts = [];
+      for (const part of run) {
+        const decoded = decodeStringBody(part.content, part.isRaw);
+        if (!decoded) { parts.length = 0; break; }
+        parts.push(decoded.text);
+      }
+      if (parts.length > 0) {
+        const text = parts.join('');
+        if (head.isBytes) {
+          head.value = `${bytesDecoderName}('${Buffer.from(bytesFromText(text)).toString('base64')}')`;
+          encryptedBytes++;
+        } else {
+          head.value = `${decoderName}('${Buffer.from(new TextEncoder().encode(text)).toString('base64')}')`;
+          encryptedStr++;
+        }
+        head.type = 'OP'; // already the final replacement; the main pass skips it
+        for (let k = 1; k < run.length; k++) consumed.add(run[k]);
+        continue;
+      }
+    }
+    for (const part of run) {
+      if (part.type === 'STRING') part._noEncrypt = true;
+    }
+  }
+  if (consumed.size) {
+    for (let i = tokens.length - 1; i >= 0; i--) {
+      if (consumed.has(tokens[i])) tokens.splice(i, 1);
+    }
+  }
+  return { encryptedStr, encryptedBytes };
+}
+
 /** Rewrite a plain decimal integer literal as hex or an arithmetic split. */
 function obfuscateInt(value) {
   if (!Number.isSafeInteger(value)) return String(value);
@@ -556,6 +622,11 @@ export async function obfuscatePython(code, level, options = {}) {
 
   let encryptedStr = 0;
   let encryptedBytes = 0;
+  if (flags.encryptStrings) {
+    const merged = mergeStringConcatenations(tokens, decoderName, bytesDecoderName);
+    encryptedStr += merged.encryptedStr;
+    encryptedBytes += merged.encryptedBytes;
+  }
   for (const t of tokens) {
     if (t.type === 'NAME' && renameMap.has(t.value) && !t._skipRename) {
       t.value = renameMap.get(t.value);
@@ -565,7 +636,7 @@ export async function obfuscatePython(code, level, options = {}) {
       t.value = renameInsideFString(t.value, renameMap);
       continue;
     }
-    if (t.type === 'STRING' && flags.encryptStrings && !docstrings.has(t)) {
+    if (t.type === 'STRING' && flags.encryptStrings && !t._noEncrypt && !docstrings.has(t)) {
       const encrypted = encryptStringToken(t, decoderName, bytesDecoderName);
       if (encrypted) {
         t.value = encrypted.code;
@@ -679,9 +750,26 @@ function extractHeader(code) {
 }
 
 /**
- * Single-mode Python obfuscation (no level selection): run the lexical
- * obfuscator first, then wrap the result in two self-extracting
- * zlib + base64 shells. Runtime output stays identical to the original.
+ * Compress-only Python mode (`light` level): the source ships untouched
+ * inside a single self-extracting zlib + base64 shell. The code is never
+ * rewritten, so every valid Python works — maximum compatibility at the
+ * cost of obfuscation strength (swapping `exec` for `print` recovers the
+ * source). Shebang and coding declarations stay on top for direct runs.
+ * @param {string} code
+ * @returns {Promise<string>} obfuscated source
+ */
+export async function obfuscatePythonWrap(code) {
+  // Yield once so queued I/O can proceed before the CPU-bound transform.
+  await new Promise((resolve) => setImmediate(resolve));
+  const payload = wrapLayer(code);
+  const { shebang, coding } = extractHeader(code);
+  return [shebang, coding, payload].filter(Boolean).join('\n') + '\n';
+}
+
+/**
+ * High-level Python obfuscation: run the lexical obfuscator first, then
+ * wrap the result in two self-extracting zlib + base64 shells. Runtime
+ * output stays identical to the original.
  * @param {string} code
  * @returns {Promise<string>} obfuscated source
  */

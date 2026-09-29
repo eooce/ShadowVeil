@@ -10,8 +10,9 @@ import { obfuscateRateLimitOptions, keyIssueRateLimitOptions } from '../middlewa
 const obfuscateBodySchema = z.object({
   language: z.enum(['javascript', 'python', 'shell']),
   code: z.string().min(1, 'code is required'),
-  // javascript: light|standard|max (default standard); python: ignored
-  // (single mode); shell: base64|high — legacy light|standard|max accepted.
+  // javascript: light|standard|max (default standard); python: light
+  // (compress-only shell) | high (lexical + shells, default high);
+  // shell: base64|high — legacy light|standard|max accepted.
   level: z.enum(['light', 'standard', 'max', 'base64', 'high']).optional(),
   options: z
     .object({

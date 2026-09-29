@@ -4,7 +4,7 @@
  *
  * Levels are per-language (from LANGS metadata):
  *   JavaScript: light / standard (default) / max
- *   Python:     single mode — the level control is hidden
+ *   Python:     light (compress-only) / high (default)
  *   Shell:      base64 (default) / high
  */
 (function () {
@@ -33,9 +33,12 @@
       ext: 'py',
       file: 'input.py',
       out: 'output.py · 混淆结果',
-      levels: [],
-      defaultLevel: null,
-      levelNote: '单一混淆模式：词法混淆 + 多层 zlib / base64 自解压外壳',
+      levels: [
+        { id: 'light', label: '轻' },
+        { id: 'high', label: '高' },
+      ],
+      defaultLevel: 'high',
+      levelNote: '',
     },
     shell: {
       label: 'Shell',
@@ -117,7 +120,7 @@
   var state = onWorkspace
     ? {
         lang: 'javascript',
-        levels: { javascript: 'standard', python: null, shell: 'base64' },
+        levels: { javascript: 'standard', python: 'high', shell: 'base64' },
         busy: false,
         lastResult: null,
       }

@@ -3,7 +3,11 @@
  *
  * - JavaScript: three levels (light / standard / max), default `standard`,
  *   mirroring the classic js-obfuscator online presets.
- * - Python: a single mode — the API level field is ignored.
+ * - Python: two levels (light / high), default `high`.
+ *   `light` ships the source untouched inside a single zlib + base64
+ *   self-extracting shell (maximum compatibility); `high` runs the lexical
+ *   obfuscator first, then applies two shells. Any other value maps to
+ *   `high`, so legacy single-mode requests keep their old behavior.
  * - Shell: two levels (base64 / high), default `base64`.
  *   Legacy API values map: light|standard -> base64, max -> high.
  */
@@ -29,9 +33,12 @@ export const LANGUAGES = {
     monaco: 'python',
     extension: 'py',
     mime: 'text/x-python',
-    levels: [],
-    defaultLevel: null,
-    levelNote: '单一混淆模式：先做词法级混淆（重命名 / 字符串加密 / 数字混淆），再套多层 zlib + base64 自解压外壳，运行效果与原代码一致。',
+    levels: [
+      { id: 'light', label: '轻' },
+      { id: 'high', label: '高' },
+    ],
+    defaultLevel: 'high',
+    levelNote: '轻 = 仅压缩打包（zlib + base64 自解压外壳，源码不改写，兼容性最好）；高 = 词法混淆（重命名 / 字符串加密 / 数字混淆）+ 多层自解压外壳。',
   },
   shell: {
     id: 'shell',
@@ -107,7 +114,9 @@ export const JS_OPTION_KEYS = [
  * @param {string|undefined} level raw level from the request
  */
 export function normalizeLevel(language, level) {
-  if (language === 'python') return 'single';
+  if (language === 'python') {
+    return level === 'light' ? 'light' : 'high';
+  }
   if (language === 'shell') {
     if (level === 'high' || level === 'max') return 'high';
     return 'base64';
