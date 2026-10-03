@@ -1,6 +1,8 @@
 /* ShadowVeil — editor integration.
  *
- * Desktop: Monaco with transparent, page-matching themes.
+ * Desktop: Monaco with transparent, page-matching backgrounds. Token colors
+ * follow the VS Code default themes (Dark+ / Light+) — see DARK_RULES and
+ * LIGHT_RULES below; scopes not listed fall back to editor.foreground.
  * Mobile (coarse pointer / narrow viewport): native <textarea> adapters —
  * Monaco's touch support is unreliable on phones, while a native textarea
  * gets the system keyboard and proper input UX for free. Both modes expose
@@ -78,26 +80,43 @@
 
   /* --------------------------------------------------------- desktop mode */
 
+  /* VS Code "Default Dark+" token palette. Monaco's monarch tokenizers
+   * only emit the scopes below (verified for js/ts, python, shell), so
+   * keywords keep the generic blue — the purple keyword.control of VS
+   * Code's semantic layer is not distinguishable here. */
   var DARK_RULES = [
-    { token: 'comment', foreground: '6B7C72', fontStyle: 'italic' },
-    { token: 'keyword', foreground: '98E0B4' },
-    { token: 'string', foreground: '8ED0D4' },
-    { token: 'string.escape', foreground: 'C0EAD2' },
-    { token: 'number', foreground: 'A8DDBC' },
-    { token: 'regexp', foreground: 'A8DDBC' },
-    { token: 'type', foreground: '7CC5C9' },
-    { token: 'identifier', foreground: 'E8F0EA' },
-    { token: 'delimiter', foreground: '93A69A' },
-    { token: 'operator', foreground: '9FD0B8' },
+    { token: 'comment', foreground: '6A9955' },
+    { token: 'string', foreground: 'CE9178' },
+    { token: 'string.escape', foreground: 'D7BA7D' },
+    { token: 'regexp', foreground: 'D16969' },
+    { token: 'keyword', foreground: '569CD6' },
+    { token: 'number', foreground: 'B5CEA8' },
+    { token: 'type', foreground: '4EC9B0' },
+    { token: 'type.identifier', foreground: '4EC9B0' },
+    { token: 'identifier', foreground: '9CDCFE' },
+    { token: 'variable', foreground: '9CDCFE' },
+    { token: 'tag', foreground: 'DCDCAA' }, // python decorators
+    { token: 'attribute.name', foreground: '9CDCFE' }, // shell flags
+    { token: 'metatag', foreground: '569CD6' }, // shell shebang
+    { token: 'delimiter', foreground: 'D4D4D4' },
   ];
 
+  /* VS Code "Default Light+" token palette. */
   var LIGHT_RULES = [
-    { token: 'comment', foreground: '8A9A8F', fontStyle: 'italic' },
-    { token: 'keyword', foreground: '2F7A50' },
-    { token: 'string', foreground: '35909A' },
-    { token: 'number', foreground: '3E8E68' },
-    { token: 'type', foreground: '3FA0A8' },
-    { token: 'operator', foreground: '4E8966' },
+    { token: 'comment', foreground: '008000' },
+    { token: 'string', foreground: 'A31515' },
+    { token: 'string.escape', foreground: 'EE0000' },
+    { token: 'regexp', foreground: '811F3F' },
+    { token: 'keyword', foreground: '0000FF' },
+    { token: 'number', foreground: '098658' },
+    { token: 'type', foreground: '267F99' },
+    { token: 'type.identifier', foreground: '267F99' },
+    { token: 'identifier', foreground: '001080' },
+    { token: 'variable', foreground: '001080' },
+    { token: 'tag', foreground: '795E26' }, // python decorators
+    { token: 'attribute.name', foreground: '001080' }, // shell flags
+    { token: 'metatag', foreground: '0000FF' }, // shell shebang
+    { token: 'delimiter', foreground: '000000' },
   ];
 
   function defineThemes(monaco) {
@@ -107,7 +126,7 @@
       rules: DARK_RULES,
       colors: {
         'editor.background': '#00000000',
-        'editor.foreground': '#E8F0EA',
+        'editor.foreground': '#D4D4D4',
         'editorLineNumber.foreground': '#3E5046',
         'editorLineNumber.activeForeground': '#8A9A8F',
         'editorCursor.foreground': '#8FD8A8',
@@ -131,7 +150,7 @@
       rules: LIGHT_RULES,
       colors: {
         'editor.background': '#00000000',
-        'editor.foreground': '#26302A',
+        'editor.foreground': '#000000',
         'editorLineNumber.foreground': '#B9C4BB',
         'editorCursor.foreground': '#3F7A59',
         'editor.selectionBackground': '#4E896626',
